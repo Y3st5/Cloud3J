@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Cloud2026.Services
@@ -17,6 +18,11 @@ namespace Cloud2026.Services
         /// Cloud Code exige un jugador autenticado: sin sesión no hay llamada.
         /// </summary>
         bool IsReady { get; }
+
+        /// <summary>
+        /// Llama a un endpoint genérico de un módulo de Cloud Code.
+        /// </summary>
+        Task<T> CallModuleAsync<T>(string moduleName, string functionName, Dictionary<string, object> args);
 
         /// <summary>
         /// Pide al módulo HelloWorld que componga un saludo.

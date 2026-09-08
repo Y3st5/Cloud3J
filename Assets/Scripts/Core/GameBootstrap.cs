@@ -14,16 +14,16 @@ namespace Cloud2026.Core
         public static GameBootstrap Instance { get; private set; }
 
         [Header("Servicios")]
-        [SerializeField] private UGSAuthService authService;
+        [SerializeField] public UGSAuthService authService;
 
         [Tooltip("Wrapper de Cloud Code. Necesita sesión iniciada para poder llamar al servidor.")]
-        [SerializeField] private UGSCloudCodeService cloudCodeService;
+        [SerializeField] public UGSCloudCodeService cloudCodeService;
 
         [Tooltip("Cliente del módulo TurnMatch: partidas por turnos con idempotencia.")]
-        [SerializeField] private UGSTurnMatchService turnMatchService;
+        [SerializeField] public UGSTurnMatchService turnMatchService;
 
         [Tooltip("Wrapper de Cloud Save: guarda y carga el perfil del jugador. Necesita sesión iniciada.")]
-        [SerializeField] private UGSCloudSaveService cloudSaveService;
+        [SerializeField] public UGSCloudSaveService cloudSaveService;
 
         [Header("Configuración de Arranque")]
         [Tooltip("Si es true, no destruye este GameObject al cargar nuevas escenas.")]

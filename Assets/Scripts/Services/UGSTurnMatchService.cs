@@ -46,6 +46,11 @@ namespace Cloud2026.Services
 
         private bool _isCalling;
 
+        public async Task<List<MatchState>> GetActiveMatchesAsync()
+        {
+            return await CallAsync<List<MatchState>>("GetActiveMatches", new Dictionary<string, object>());
+        }
+
         public async Task<MatchViewDto> CreateMatchAsync()
         {
             // El mismo identificador mientras no sepamos si la partida se creó:
@@ -56,7 +61,7 @@ namespace Cloud2026.Services
                 _pendingCreateRequestId = NewRequestId();
             }
 
-            var view = await CallAsync("CreateMatch", new Dictionary<string, object>
+            var view = await CallAsync<MatchViewDto>("CreateMatch", new Dictionary<string, object>
             {
                 { "requestId", _pendingCreateRequestId }
             });
@@ -85,7 +90,7 @@ namespace Cloud2026.Services
                 _pendingJoinRequestId = NewRequestId();
             }
 
-            var view = await CallAsync("JoinMatch", new Dictionary<string, object>
+            var view = await CallAsync<MatchViewDto>("JoinMatch", new Dictionary<string, object>
             {
                 { "matchCode", code },
                 { "requestId", _pendingJoinRequestId }
@@ -117,7 +122,7 @@ namespace Cloud2026.Services
                 _pendingTurnExpectedNumber = expectedTurnNumber;
             }
 
-            var view = await CallAsync("SubmitTurn", new Dictionary<string, object>
+            var view = await CallAsync<MatchViewDto>("SubmitTurn", new Dictionary<string, object>
             {
                 { "matchCode", _currentMatchCode },
                 { "requestId", _pendingTurnRequestId },
@@ -161,7 +166,7 @@ namespace Cloud2026.Services
             Debug.Log($"[UGSTurnMatchService] Reenviando a propósito la petición {requestId} " +
                       $"(turno esperado {expected}). El servidor debería responder 'replayed'.");
 
-            return await CallAsync("SubmitTurn", new Dictionary<string, object>
+            return await CallAsync<MatchViewDto>("SubmitTurn", new Dictionary<string, object>
             {
                 { "matchCode", _currentMatchCode },
                 { "requestId", requestId },
@@ -176,7 +181,7 @@ namespace Cloud2026.Services
                 return Task.FromResult<MatchViewDto>(null);
             }
 
-            return CallAsync("GetMatch", new Dictionary<string, object>
+            return CallAsync<MatchViewDto>("GetMatch", new Dictionary<string, object>
             {
                 { "matchCode", _currentMatchCode }
             });
@@ -204,41 +209,41 @@ namespace Cloud2026.Services
         /// </summary>
         private static string NewRequestId() => Guid.NewGuid().ToString("N");
 
-        private async Task<MatchViewDto> CallAsync(string function, Dictionary<string, object> args)
+        private async Task<T> CallAsync<T>(string function, Dictionary<string, object> args)
         {
             if (!IsReady)
             {
                 OnCallFailed?.Invoke("Necesitas iniciar sesión antes de jugar.");
-                return null;
+                return default;
             }
 
             if (_isCalling)
             {
                 Debug.LogWarning("[UGSTurnMatchService] Ya hay una llamada en curso; se ignora esta.");
-                return null;
+                return default;
             }
 
             _isCalling = true;
 
             try
             {
-                return await CloudCodeSdk.Instance.CallModuleEndpointAsync<MatchViewDto>(
+                return await CloudCodeSdk.Instance.CallModuleEndpointAsync<T>(
                     ModuleName, function, args);
             }
             catch (CloudCodeRateLimitedException rateEx)
             {
                 Report($"Demasiadas llamadas seguidas. Reinténtalo en {rateEx.RetryAfter} s.", rateEx);
-                return null;
+                return default;
             }
             catch (CloudCodeException ccEx)
             {
                 Report(Translate(ccEx, function), ccEx);
-                return null;
+                return default;
             }
             catch (RequestFailedException reqEx)
             {
                 Report($"Error de conexión con UGS ({reqEx.ErrorCode}).", reqEx);
-                return null;
+                return default;
             }
             finally
             {

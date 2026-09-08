@@ -33,6 +33,63 @@ namespace Cloud2026.Services
             UnityServices.State == ServicesInitializationState.Initialized &&
             AuthenticationService.Instance.IsSignedIn;
 
+        /// <summary>
+        /// Implementación genérica para llamar a cualquier módulo y función de Cloud Code.
+        /// </summary>
+        public async Task<T> CallModuleAsync<T>(string moduleName, string functionName, Dictionary<string, object> args)
+        {
+            if (!IsReady)
+            {
+                const string msg = "Necesitas iniciar sesión antes de llamar a Cloud Code.";
+                Debug.LogWarning($"[UGSCloudCodeService] {msg}");
+                OnCallFailed?.Invoke(msg);
+                return default;
+            }
+
+            if (_isCalling)
+            {
+                Debug.LogWarning("[UGSCloudCodeService] Ya hay una llamada en curso; se ignora esta.");
+                return default;
+            }
+
+            _isCalling = true;
+
+            try
+            {
+                Debug.Log($"[UGSCloudCodeService] Llamando a {moduleName}.{functionName}...");
+                var result = await CloudCodeSdk.Instance.CallModuleEndpointAsync<T>(
+                    moduleName, functionName, args);
+
+                Debug.Log($"[UGSCloudCodeService] Respuesta recibida del servidor.");
+                return result;
+            }
+            catch (CloudCodeRateLimitedException rateEx)
+            {
+                string errorMsg = $"Demasiadas llamadas seguidas. Reinténtalo en {rateEx.RetryAfter} s.";
+                Debug.LogError($"[UGSCloudCodeService] {errorMsg} ({rateEx.Reason})");
+                OnCallFailed?.Invoke(errorMsg);
+                return default;
+            }
+            catch (CloudCodeException ccEx)
+            {
+                string errorMsg = TranslateCloudCodeError(ccEx);
+                Debug.LogError($"[UGSCloudCodeService] {errorMsg} (Reason {ccEx.Reason}): {ccEx.Message}");
+                OnCallFailed?.Invoke(errorMsg);
+                return default;
+            }
+            catch (RequestFailedException reqEx)
+            {
+                string errorMsg = $"Error de conexión con UGS ({reqEx.ErrorCode}): {reqEx.Message}";
+                Debug.LogError($"[UGSCloudCodeService] {errorMsg}");
+                OnCallFailed?.Invoke(errorMsg);
+                return default;
+            }
+            finally
+            {
+                _isCalling = false;
+            }
+        }
+
         private bool _isCalling;
 
         /// <summary>
