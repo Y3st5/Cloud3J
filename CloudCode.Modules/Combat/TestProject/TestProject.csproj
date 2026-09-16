@@ -19,6 +19,6 @@
     <Using Include="NUnit.Framework" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Project\TurnMatch.csproj" />
+    <ProjectReference Include="..\Project\Combat.csproj" />
   </ItemGroup>
 </Project>

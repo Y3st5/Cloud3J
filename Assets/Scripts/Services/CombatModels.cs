@@ -5,9 +5,9 @@ namespace Cloud2026.Services
 {
     public enum CombatClass
     {
-        Warrior,   // Piedra
-        Mage,      // Papel
-        Assassin   // Tijeras
+        Warrior,
+        Mage,
+        Assassin
     }
 
     [Serializable]
@@ -30,6 +30,7 @@ namespace Cloud2026.Services
         public bool IsResolved = false;
         public string WinnerId = string.Empty;
         public string Status = "WaitingForTurns"; // WaitingForTurns, Resolved, Abandoned
+        public long LastMoveTimestamp; // Unix timestamp of the last turn submitted
     }
 
     [Serializable]

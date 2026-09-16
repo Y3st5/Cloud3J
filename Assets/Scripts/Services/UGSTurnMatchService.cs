@@ -46,11 +46,6 @@ namespace Cloud2026.Services
 
         private bool _isCalling;
 
-        public async Task<List<MatchState>> GetActiveMatchesAsync()
-        {
-            return await CallAsync<List<MatchState>>("GetActiveMatches", new Dictionary<string, object>());
-        }
-
         public async Task<MatchViewDto> CreateMatchAsync()
         {
             // El mismo identificador mientras no sepamos si la partida se creó:

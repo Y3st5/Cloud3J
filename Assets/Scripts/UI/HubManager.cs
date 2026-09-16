@@ -1,12 +1,9 @@
 using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using Cloud2026.Services;
 using Cloud2026.Gameplay;
-using Cloud2026.Core;
 
 namespace Cloud2026.UI
 {
@@ -35,8 +32,8 @@ namespace Cloud2026.UI
 
             try
             {
-                // Usamos el TurnMatchService para obtener partidas donde el jugador participa
-                var matches = await GameBootstrap.Instance.TurnMatchService.GetActiveMatchesAsync();
+                // Los duelos en curso viven en el módulo "Combat" de Cloud Code.
+                var matches = await FindCombatService().GetActiveMatchesAsync();
 
                 if (matches == null || matches.Count == 0)
                 {
@@ -56,6 +53,20 @@ namespace Cloud2026.UI
                 Debug.LogError($"[HubManager] Error al cargar partidas: {ex.Message}");
                 hubTitleText.text = "Error al cargar partidas.";
             }
+        }
+
+        /// <summary>
+        /// Prefiere la instancia ya cargada en la escena; si falta, la busca para
+        /// que el hub funcione aunque otro objeto no la haya enfocado aún.
+        /// </summary>
+        private static CombatService FindCombatService()
+        {
+            if (CombatService.Instance != null)
+            {
+                return CombatService.Instance;
+            }
+
+            return FindFirstObjectByType<CombatService>();
         }
 
         private void CreateMatchEntry(MatchState match)

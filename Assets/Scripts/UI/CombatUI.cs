@@ -29,26 +29,70 @@ namespace Cloud2026.UI
         [SerializeField] private TextMeshProUGUI statusText;
         [SerializeField] private TextMeshProUGUI hpTextP1;
         [SerializeField] private TextMeshProUGUI hpTextP2;
+        [SerializeField] private Button btnClaimVictory; // NUEVO: Botón para reclamar victoria
 
         private void Start()
         {
-            // Configurar botones de clase
-            btnWarrior.onClick.AddListener(() => SelectClass(CombatClass.Warrior));
-            btnMage.onClick.AddListener(() => SelectClass(CombatClass.Mage));
-            btnAssassin.onClick.AddListener(() => SelectClass(CombatClass.Assassin));
-
-            btnSubmit.onClick.AddListener(() => combatManager.SubmitMoves());
-            btnClear.onClick.AddListener(() => {
-                combatManager.ClearMoves();
-                UpdateSlots();
-            });
+            if (combatManager == null)
+            {
+                Debug.LogError("[CombatUI] CombatManager no asignado en el Inspector.");
+                return;
+            }
 
             // Suscribirse a eventos del manager
             combatManager.OnStateChanged += HandleStateChanged;
             combatManager.OnRoundResolved += HandleRoundResolved;
-            combatManager.OnCombatError += (msg) => statusText.text = $"Error: {msg}";
+            combatManager.OnCombatError += (msg) =>
+            {
+                if (statusText != null) statusText.text = $"Error: {msg}";
+            };
+            combatManager.OnTimeoutStatusChanged += HandleTimeoutStatusChanged;
 
+            // Sincronizar UI con el estado inicial (botones y textos).
+            HandleStateChanged(combatManager.CurrentState);
             UpdateSlots();
+        }
+
+        // Métodos públicos cableados en el Inspector (persistent calls de los buttons).
+
+        public void OnWarriorClicked()
+        {
+            SelectClass(CombatClass.Warrior);
+        }
+
+        public void OnMageClicked()
+        {
+            SelectClass(CombatClass.Mage);
+        }
+
+        public void OnAssassinClicked()
+        {
+            SelectClass(CombatClass.Assassin);
+        }
+
+        public void OnSubmitClicked()
+        {
+            if (combatManager != null) combatManager.SubmitMoves();
+        }
+
+        public void OnClearClicked()
+        {
+            if (combatManager == null) return;
+            combatManager.ClearMoves();
+            UpdateSlots();
+        }
+
+        public void OnClaimVictoryClicked()
+        {
+            if (combatManager != null) combatManager.ClaimVictory();
+        }
+
+        private void HandleTimeoutStatusChanged(bool isExpired)
+        {
+            if (btnClaimVictory != null)
+            {
+                btnClaimVictory.gameObject.SetActive(isExpired);
+            }
         }
 
         private void SelectClass(CombatClass combatClass)
@@ -87,22 +131,28 @@ namespace Cloud2026.UI
 
         private void HandleStateChanged(CombatManager.CombatState state)
         {
-            btnSubmit.interactable = (state == CombatManager.CombatState.Planning);
-
-            statusText.text = state switch
+            if (btnSubmit != null)
             {
-                CombatManager.CombatState.Planning => "Planifica tu secuencia...",
-                CombatManager.CombatState.Submitting => "Enviando jugada a la nube...",
-                CombatManager.CombatState.Resolving => "¡Resolviendo choque!",
-                CombatManager.CombatState.Idle => "Esperando respuesta del rival...",
-                CombatManager.CombatState.Finished => "Partida Finalizada",
-                _ => ""
-            };
+                btnSubmit.interactable = (state == CombatManager.CombatState.Planning);
+            }
 
-            if (combatManager.CurrentMatchState != null)
+            if (statusText != null)
             {
-                hpTextP1.text = $"HP: {combatManager.CurrentMatchState.Player1HP}";
-                hpTextP2.text = $"HP: {combatManager.CurrentMatchState.Player2HP}";
+                statusText.text = state switch
+                {
+                    CombatManager.CombatState.Planning => "Planifica tu secuencia...",
+                    CombatManager.CombatState.Submitting => "Enviando jugada a la nube...",
+                    CombatManager.CombatState.Resolving => "¡Resolviendo choque!",
+                    CombatManager.CombatState.Idle => "Esperando respuesta del rival...",
+                    CombatManager.CombatState.Finished => "Partida Finalizada",
+                    _ => ""
+                };
+            }
+
+            if (combatManager != null && combatManager.CurrentMatchState != null)
+            {
+                if (hpTextP1 != null) hpTextP1.text = $"HP: {combatManager.CurrentMatchState.Player1HP}";
+                if (hpTextP2 != null) hpTextP2.text = $"HP: {combatManager.CurrentMatchState.Player2HP}";
             }
         }
 
@@ -112,7 +162,7 @@ namespace Cloud2026.UI
             Debug.Log($"Ronda {result.RoundNumber} resuelta. P1 daño: {result.P1DamageTaken}, P2 daño: {result.P2DamageTaken}");
 
             // Feedback visual rápido
-            statusText.text = "¡Ronda Resuelta!";
+            if (statusText != null) statusText.text = "¡Ronda Resuelta!";
             UpdateSlots();
         }
     }

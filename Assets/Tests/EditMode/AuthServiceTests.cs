@@ -51,8 +51,17 @@ namespace Cloud2026.Tests
 
             public void SignOut(bool clearCredentials = false)
             {
+                // Espejo del comportamiento real de UGSAuthService.SignOut: si no
+                // hay sesión, no pasa nada (ni siquiera dispara el evento).
+                if (!IsSignedIn)
+                {
+                    return;
+                }
+
                 IsSignedIn = false;
                 PlayerId = string.Empty;
+                Username = string.Empty;
+                IsUnityAccountLinked = false;
                 OnSignedOut?.Invoke();
             }
 
@@ -183,6 +192,20 @@ namespace Cloud2026.Tests
             Assert.IsFalse(auth.IsSignedIn);
             Assert.IsEmpty(auth.PlayerId);
             Assert.IsTrue(signedOutFired);
+        }
+
+        [Test]
+        public async Task FakeAuthService_SignOut_SinSesionNoDisparaEvento()
+        {
+            var auth = new FakeAuthService();
+            bool signedOutFired = false;
+            auth.OnSignedOut += () => signedOutFired = true;
+
+            // Sin sesión previa, cerrando sesión no cambia nada: igual que el real.
+            auth.SignOut();
+
+            Assert.IsFalse(signedOutFired, "El real no dispara OnSignedOut si no había sesión.");
+            Assert.IsFalse(auth.IsSignedIn);
         }
 
         [Test]

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Cloud2026.Services
@@ -28,8 +27,6 @@ namespace Cloud2026.Services
         /// sea, reintentar es seguro: se reutilizará el mismo identificador.
         /// </summary>
         bool HasPendingTurn { get; }
-
-        Task<List<MatchState>> GetActiveMatchesAsync();
 
         Task<MatchViewDto> CreateMatchAsync();
 

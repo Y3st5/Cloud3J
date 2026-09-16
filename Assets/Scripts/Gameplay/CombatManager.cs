@@ -21,6 +21,7 @@ namespace Cloud2026.Gameplay
         public event Action<CombatState> OnStateChanged;
         public event Action<RoundResult> OnRoundResolved;
         public event Action<string> OnCombatError;
+        public event Action<bool> OnTimeoutStatusChanged;
 
         public void StartMatch(string matchId, MatchState state)
         {
@@ -80,9 +81,56 @@ namespace Cloud2026.Gameplay
             }
         }
 
+        private void Update()
+        {
+            // Verificar el timeout cada segundo aproximadamente para no saturar
+            if (Time.frameCount % 60 == 0)
+            {
+                CheckTimeout();
+            }
+        }
+
         public void ClearMoves()
         {
             SelectedMoves.Clear();
+        }
+
+        public void CheckTimeout()
+        {
+            if (CurrentMatchState == null || CurrentMatchState.Status == "Resolved") return;
+
+            long currentTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            long elapsed = currentTime - CurrentMatchState.LastMoveTimestamp;
+
+            // 5 minutos de timeout
+            bool isExpired = elapsed > (5 * 60 * 1000);
+            OnTimeoutStatusChanged?.Invoke(isExpired);
+        }
+
+        public async void ClaimVictory()
+        {
+            if (string.IsNullOrEmpty(CurrentMatchId)) return;
+
+            SetState(CombatState.Submitting);
+            var result = await CombatService.Instance.ClaimVictoryAsync(CurrentMatchId);
+
+            if (result != null && result.Status == CombatService.StatusVictoryClaimed)
+            {
+                Debug.Log("Victoria reclamada con éxito.");
+                if (result.NewState != null)
+                {
+                    CurrentMatchState = result.NewState;
+                }
+                SetState(CombatState.Finished);
+            }
+            else
+            {
+                var message = result != null && !string.IsNullOrEmpty(result.Message)
+                    ? result.Message
+                    : "No se pudo reclamar la victoria.";
+                OnCombatError?.Invoke(message);
+                SetState(CombatState.Planning);
+            }
         }
 
         private void SetState(CombatState newState)
