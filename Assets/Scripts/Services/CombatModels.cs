@@ -29,7 +29,7 @@ namespace Cloud2026.Services
         public int CurrentRound = 1;
         public bool IsResolved = false;
         public string WinnerId = string.Empty;
-        public string Status = "WaitingForTurns"; // WaitingForTurns, Resolved, Abandoned
+        public string Status = "WaitingForGuest"; // WaitingForGuest, Playing, Resolved
         public long LastMoveTimestamp; // Unix timestamp of the last turn submitted
     }
 

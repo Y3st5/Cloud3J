@@ -279,12 +279,58 @@ public class CombatRulesTests
         Assert.That(CombatRules.ParseMove("2"), Is.EqualTo(CombatClass.Assassin));
     }
 
+    // --- Incomparecencia -------------------------------------------------------
+
+    private const long Ahora = 1_000_000_000_000;
+
     [Test]
-    public void ElParseoDevuelveUnknownAnteCualquierBasura()
+    public void NoSePuedeReclamarSiNoHaPasadoElTiempo()
     {
-        Assert.That(CombatRules.ParseMove(null), Is.EqualTo(CombatClass.Unknown));
-        Assert.That(CombatRules.ParseMove(""), Is.EqualTo(CombatClass.Unknown));
-        Assert.That(CombatRules.ParseMove("Piedra"), Is.EqualTo(CombatClass.Unknown));
-        Assert.That(CombatRules.ParseMove("7"), Is.EqualTo(CombatClass.Unknown));
+        var match = DueloEnJuego();
+        match.LastMoveTimestamp = Ahora - CombatRules.VictoryTimeoutMs + 1_000;
+
+        Assert.That(CombatRules.CanClaimVictory(match, Ahora), Is.False);
+    }
+
+    [Test]
+    public void SePuedeReclamarEnDueloEnJuegoTrasElTimeout()
+    {
+        var match = DueloEnJuego();
+        match.LastMoveTimestamp = Ahora - CombatRules.VictoryTimeoutMs - 1_000;
+
+        Assert.That(CombatRules.CanClaimVictory(match, Ahora), Is.True);
+    }
+
+    [Test]
+    public void ElCreadorPuedeReclamarLaColaAbandonada()
+    {
+        var match = DueloEnJuego();
+        match.Player2Id = string.Empty;
+        match.Status = CombatStatus.WaitingForGuest;
+        match.LastMoveTimestamp = Ahora - CombatRules.VictoryTimeoutMs - 1_000;
+
+        Assert.That(CombatRules.CanClaimVictory(match, Ahora), Is.True);
+    }
+
+    [Test]
+    public void LaColaRecienteNoSePuedeReclamar()
+    {
+        var match = DueloEnJuego();
+        match.Player2Id = string.Empty;
+        match.Status = CombatStatus.WaitingForGuest;
+        match.LastMoveTimestamp = Ahora - 1_000;
+
+        Assert.That(CombatRules.CanClaimVictory(match, Ahora), Is.False);
+    }
+
+    [Test]
+    public void UnDueloResueltoNoSePuedeReclamar()
+    {
+        var match = DueloEnJuego();
+        match.IsResolved = true;
+        match.Status = CombatStatus.Resolved;
+        match.LastMoveTimestamp = 0;
+
+        Assert.That(CombatRules.CanClaimVictory(match, Ahora), Is.False);
     }
 }

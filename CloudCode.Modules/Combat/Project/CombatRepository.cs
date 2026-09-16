@@ -26,6 +26,12 @@ public record StoredCombat(CombatMatch State, string? WriteLock);
 /// </summary>
 public class CombatIndex
 {
+    /// <summary>
+    /// La clave en disco es "match_ids" (snake_case): la misma que busca la
+    /// lectura. Newtonsoft nombraría la propiedad "MatchIds" por defecto y el
+    /// índice se escribiría con una clave y se leería con otra.
+    /// </summary>
+    [Newtonsoft.Json.JsonProperty("match_ids")]
     public List<string> MatchIds { get; set; } = new();
 }
 

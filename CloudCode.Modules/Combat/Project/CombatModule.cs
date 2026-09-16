@@ -261,24 +261,27 @@ public class CombatModule
             throw new Exception("No participas en este duelo.");
         }
 
-        if (match.IsResolved)
-        {
-            throw new Exception("Este duelo ya se resolvió.");
-        }
-
+        // Igual que en SubmitTurn: la idempotencia se comprueba antes que las
+        // validaciones de estado. Si lo primero fuese "ya se resolvió", un
+        // reintento legítimo de una victoria reclamada (respuesta perdida en la
+        // red) se rechazaría con un ScriptError cuando la victoria sí se aplicó.
         var processed = CombatRules.FindProcessed(match, requestId);
         if (processed != null)
         {
             return Replay(processed);
         }
 
-        var elapsed = now - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-        var elapsedMs = (long)elapsed.TotalMilliseconds - match.LastMoveTimestamp;
-        if (elapsedMs < CombatRules.VictoryTimeoutMs)
+        if (match.IsResolved)
+        {
+            throw new Exception("Este duelo ya se resolvió.");
+        }
+
+        var nowMs = new DateTimeOffset(now).ToUnixTimeMilliseconds();
+        if (!CombatRules.CanClaimVictory(match, nowMs))
         {
             _logger.LogInformation(
                 "{PlayerId} intentó reclamar en {MatchId} con {Ms} ms sin movimientos; se rechaza",
-                playerId, matchIdCode, elapsedMs);
+                playerId, matchIdCode, nowMs - match.LastMoveTimestamp);
 
             throw new Exception("Todavía no han pasado los 5 minutos sin movimiento. Sigue jugando.");
         }
@@ -321,18 +324,20 @@ public class CombatModule
             throw new Exception("No participas en este duelo.");
         }
 
-        return stored.State;
+        return ForView(stored.State);
     }
 
     /// <summary>
     /// Lista los duelos en curso del jugador. Usa el índice privado que se va
     /// rellenando al crear y al unirse, y que se guarda como custom data privada
-    /// del jugador: para el jugador, el índice es su CRUD personal.
+    /// del jugador. El índice es solo una pista: la participación se vuelve a
+    /// comprobar contra el duelo real, así que ni un índice manipulado por el
+    /// cliente saca a la luz duelos ajenos.
     /// </summary>
     [CloudCodeFunction("GetActiveMatches")]
     public async Task<List<CombatMatch>> GetActiveMatches(IExecutionContext context)
     {
-        RequirePlayer(context);
+        var playerId = RequirePlayer(context);
 
         var index = await _repository.LoadIndexAsync(context);
         var matches = new List<CombatMatch>();
@@ -347,11 +352,19 @@ public class CombatModule
                     continue;
                 }
 
+                if (!stored.State.IsParticipant(playerId))
+                {
+                    _logger.LogWarning(
+                        "El índice de {PlayerId} apunta a {MatchId} en el que no participa; se ignora",
+                        playerId, matchId);
+                    continue;
+                }
+
                 // El índice puede quedarse obsoleto (duelo terminado, resuelto o
                 // ya con dos jugadores): solo se listan duelos en curso.
                 if (stored.State.Status == CombatStatus.Playing)
                 {
-                    matches.Add(stored.State);
+                    matches.Add(ForView(stored.State));
                 }
             }
             catch (Exception ex)
@@ -376,6 +389,10 @@ public class CombatModule
             Player1HP = CombatRules.MaxHealth,
             Player2HP = CombatRules.MaxHealth,
             CurrentRound = 1,
+            // El reloj del timeout arranca al crear: sin esto, un duelo nuevo con
+            // timestamp a 0 parecería abandonado desde 1970 y la victoria por
+            // incomparecencia sería reclamable en el primer segundo.
+            LastMoveTimestamp = new DateTimeOffset(now).ToUnixTimeMilliseconds(),
             CreatedAtUtc = now.ToString("o"),
             UpdatedAtUtc = now.ToString("o")
         };
@@ -433,6 +450,19 @@ public class CombatModule
     private static CombatResponse Error(string message)
     {
         return new CombatResponse { Status = CombatOutcome.Error, Message = message };
+    }
+
+    /// <summary>
+    /// Vista del duelo que viaja por la red: sin los movimientos de la ronda en
+    /// curso. En un duelo de depredación de información perfecta, leer la
+    /// secuencia del rival dictaría los contramovimientos exactos; el módulo
+    /// nunca la devuelve ni en GetMatch ni en GetActiveMatches.
+    /// </summary>
+    private static CombatMatch ForView(CombatMatch match)
+    {
+        match.Player1Moves = new List<CombatClass>();
+        match.Player2Moves = new List<CombatClass>();
+        return match;
     }
 
     private async Task<StoredCombat> LoadOrThrowAsync(IExecutionContext context, string matchId)

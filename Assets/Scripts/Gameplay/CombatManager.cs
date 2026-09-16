@@ -59,9 +59,16 @@ namespace Cloud2026.Gameplay
                     SetState(CombatState.Planning);
                 }
             }
-            else if (response.Status == "Processed" || response.Status == "TurnSubmitted")
+            else if (response.Status == "TurnSubmitted")
             {
-                // Turno enviado, pero el rival aún no ha movido
+                // Turno enviado, pero el rival aún no ha movido. El servidor
+                // devuelve el estado actualizado (incluido el reloj del timeout):
+                // hay que aplicarlo para que el botón de reclamar no aparezca
+                // con el tiempo equivocado.
+                if (response.NewState != null)
+                {
+                    CurrentMatchState = response.NewState;
+                }
                 SetState(CombatState.Idle); // Esperando al rival
             }
             else

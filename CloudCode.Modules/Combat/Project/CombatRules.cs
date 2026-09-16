@@ -19,6 +19,32 @@ public static class CombatRules
     public const int VictoryTimeoutMs = 5 * 60 * 1000;
 
     /// <summary>
+    /// Define si ya se puede reclamar la victoria por incomparecencia. El reloj
+    /// es el del servidor en milisegundos Unix: el cliente no puede acelerar ni
+    /// ralentizar la cuenta. El timestamp de "último movimiento" se inicializa al
+    /// crear el duelo y se actualiza en cada movimiento, así que el tiempo es
+    /// siempre acotado (un timestamp a 0 jamás debe significar "llevan ausentes
+    /// desde 1970").
+    /// </summary>
+    public static bool CanClaimVictory(CombatMatch match, long nowMs)
+    {
+        if (match.IsResolved || match.Status == CombatStatus.Resolved)
+        {
+            return false;
+        }
+
+        if (nowMs - match.LastMoveTimestamp < VictoryTimeoutMs)
+        {
+            return false;
+        }
+
+        // Un duelo que aún espera invitado solo es reclamable por su creador
+        // (el único participante mientras Player2Id está vacío): es la rendición
+        // por abandono de la cola. En duelo en juego, cualquiera de los dos.
+        return match.Status == CombatStatus.Playing || match.Status == CombatStatus.WaitingForGuest;
+    }
+
+    /// <summary>
     /// Historial de peticiones que se conserva por duelo. Suficiente para
     /// proteger los reintentos de una partida normal sin dejar crecer el estado.
     /// </summary>
