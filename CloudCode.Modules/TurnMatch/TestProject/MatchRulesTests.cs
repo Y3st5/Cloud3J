@@ -186,10 +186,7 @@ public class MatchCodeTests
     [Test]
     public void LaMismaPeticionSiempreDaElMismoCodigo()
     {
-        var codigo = MatchCode.FromRequestId("abc-123");
-        var reintento = MatchCode.FromRequestId("abc-123");
-
-        Assert.That(reintento, Is.EqualTo(codigo));
+        Assert.That(MatchCode.FromRequestId("abc-123"), Is.EqualTo(MatchCode.FromRequestId("abc-123")));
     }
 
     [Test]
