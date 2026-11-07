@@ -28,7 +28,7 @@ namespace Cloud2026.Core
         [Header("Configuración de Arranque")]
         [Tooltip("Si es true, no destruye este GameObject al cargar nuevas escenas.")]
         [SerializeField] private bool persistAcrossScenes = true;
-       // [SerializeField] private UGSEconomiaService economiaService;
+       [SerializeField] private UGSEconomiaService economiaService;
         [SerializeField] private UGSRemoteConfigService remoteConfigService;
 
         [Tooltip("Si es true, intenta realizar login anónimo automático tras inicializar.")]
@@ -66,24 +66,40 @@ namespace Cloud2026.Core
         {
             if (authService != null)
             {
-                await authService.InitializeAsync();
-                OnServicesReady?.Invoke();
-
-                if (autoLoginAnonymous && !authService.IsSignedIn)
+                try
                 {
-                    await authService.SignInAnonymouslyAsync();
-                }
+                    // 1. Inicializamos Unity Services
+                    await authService.InitializeAsync();
+                    OnServicesReady?.Invoke();
 
-                if (remoteConfigService != null && authService.IsSignedIn)
-                {
-                    await remoteConfigService.InicializarYDescargar();
-                }
+                    // 2. Intentamos login anónimo si está configurado
+                    if (autoLoginAnonymous && !authService.IsSignedIn)
+                    {
+                        await authService.SignInAnonymouslyAsync();
+                    }
 
-               /* if (economiaService != null)
-                {
-                    await economiaService.CargarEconomia();
+                    // 3. SOLO cargamos Configuración y Economía SI la autenticación fue exitosa
+                    if (authService.IsSignedIn)
+                    {
+                        if (remoteConfigService != null)
+                        {
+                            await remoteConfigService.InicializarYDescargar();
+                        }
+
+                        if (economiaService != null)
+                        {
+                            await economiaService.CargarEconomia();
+                        }
+                    }
+                    else
+                    {
+                        Debug.LogWarning("GameBootstrap: El jugador no está autenticado. Se omitió la carga de Remote Config y Economía.");
+                    }
                 }
-            */
+                catch (Exception ex)
+                {
+                    Debug.LogError($"GameBootstrap: Error crítico durante la inicialización de UGS. Detalle: {ex.Message}");
+                }
             }
         }
 
@@ -94,7 +110,7 @@ namespace Cloud2026.Core
             turnMatchService = EnsureComponent(turnMatchService);
             cloudSaveService = EnsureComponent(cloudSaveService);
             remoteConfigService = EnsureComponent(remoteConfigService);
-           // economiaService = EnsureComponent(economiaService);
+            economiaService = EnsureComponent(economiaService);
         }
 
         /// <summary>
