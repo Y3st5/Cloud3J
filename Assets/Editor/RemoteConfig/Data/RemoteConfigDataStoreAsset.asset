@@ -12,6 +12,49 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 469c24fdb3bd6431b92cc1465bd9166b, type: 3}
   m_Name: RemoteConfigDataStoreAsset
   m_EditorClassIdentifier: Unity.RemoteConfig.Editor::Unity.RemoteConfig.Editor.RemoteConfigDataStore
-  _rsKeyList: '[]'
-  _rsLastCachedKeyList: '[]'
-  _environments: '[]'
+  _rsKeyList: "[\r\n  {\r\n    \"metadata\": {\r\n      \"entityId\": \"c7926c13-899a-4b42-aa5b-071ef8a83251\"\r\n   
+    },\r\n    \"rs\": {\r\n      \"key\": \"vida_base\",\r\n      \"type\": \"int\",\r\n     
+    \"value\": 100\r\n    }\r\n  },\r\n  {\r\n    \"metadata\": {\r\n      \"entityId\":
+    \"3f4259bf-8ff5-4939-8fe4-f0965bbf30d6\"\r\n    },\r\n    \"rs\": {\r\n     
+    \"key\": \"ataque_base\",\r\n      \"type\": \"int\",\r\n      \"value\": 10\r\n   
+    }\r\n  },\r\n  {\r\n    \"metadata\": {\r\n      \"entityId\": \"c88eb685-3521-445c-a83b-ecaab6f2a765\"\r\n   
+    },\r\n    \"rs\": {\r\n      \"key\": \"defensa_base\",\r\n      \"type\": \"int\",\r\n     
+    \"value\": 5\r\n    }\r\n  },\r\n  {\r\n    \"metadata\": {\r\n      \"entityId\":
+    \"f8eba6a8-56a4-4a59-b6ff-57c4ab427482\"\r\n    },\r\n    \"rs\": {\r\n     
+    \"key\": \"multiplicador_dificultad\",\r\n      \"type\": \"float\",\r\n     
+    \"value\": 1.0\r\n    }\r\n  },\r\n  {\r\n    \"metadata\": {\r\n      \"entityId\":
+    \"f25d93a9-b980-4d6a-9d02-b22b14dbd7ff\"\r\n    },\r\n    \"rs\": {\r\n     
+    \"key\": \"tabla_heroes\",\r\n      \"type\": \"json\",\r\n      \"schemaId\":
+    null,\r\n      \"value\": {\r\n        \"heroes\": [\r\n          {\r\n           
+    \"id\": \"guerrero\",\r\n            \"vida\": 140,\r\n            \"ataque\":
+    12,\r\n            \"defensa\": 9,\r\n            \"velocidad\": 8\r\n         
+    },\r\n          {\r\n            \"id\": \"arquera\",\r\n            \"vida\":
+    90,\r\n            \"ataque\": 17,\r\n            \"defensa\": 4,\r\n           
+    \"velocidad\": 9\r\n          },\r\n          {\r\n            \"id\": \"mago\",\r\n           
+    \"vida\": 80,\r\n            \"ataque\": 21,\r\n            \"defensa\": 3,\r\n           
+    \"velocidad\": 7\r\n          }\r\n        ]\r\n      }\r\n    }\r\n  }\r\n]"
+  _rsLastCachedKeyList: "[\r\n  {\r\n    \"metadata\": {\r\n      \"entityId\": \"c7926c13-899a-4b42-aa5b-071ef8a83251\"\r\n   
+    },\r\n    \"rs\": {\r\n      \"key\": \"vida_base\",\r\n      \"type\": \"int\",\r\n     
+    \"value\": 100\r\n    }\r\n  },\r\n  {\r\n    \"metadata\": {\r\n      \"entityId\":
+    \"3f4259bf-8ff5-4939-8fe4-f0965bbf30d6\"\r\n    },\r\n    \"rs\": {\r\n     
+    \"key\": \"ataque_base\",\r\n      \"type\": \"int\",\r\n      \"value\": 10\r\n   
+    }\r\n  },\r\n  {\r\n    \"metadata\": {\r\n      \"entityId\": \"c88eb685-3521-445c-a83b-ecaab6f2a765\"\r\n   
+    },\r\n    \"rs\": {\r\n      \"key\": \"defensa_base\",\r\n      \"type\": \"int\",\r\n     
+    \"value\": 5\r\n    }\r\n  },\r\n  {\r\n    \"metadata\": {\r\n      \"entityId\":
+    \"f8eba6a8-56a4-4a59-b6ff-57c4ab427482\"\r\n    },\r\n    \"rs\": {\r\n     
+    \"key\": \"multiplicador_dificultad\",\r\n      \"type\": \"float\",\r\n     
+    \"value\": 1.0\r\n    }\r\n  },\r\n  {\r\n    \"metadata\": {\r\n      \"entityId\":
+    \"f25d93a9-b980-4d6a-9d02-b22b14dbd7ff\"\r\n    },\r\n    \"rs\": {\r\n     
+    \"key\": \"tabla_heroes\",\r\n      \"type\": \"json\",\r\n      \"schemaId\":
+    null,\r\n      \"value\": {\r\n        \"heroes\": [\r\n          {\r\n           
+    \"id\": \"guerrero\",\r\n            \"vida\": 140,\r\n            \"ataque\":
+    12,\r\n            \"defensa\": 9,\r\n            \"velocidad\": 8\r\n         
+    },\r\n          {\r\n            \"id\": \"arquera\",\r\n            \"vida\":
+    90,\r\n            \"ataque\": 17,\r\n            \"defensa\": 4,\r\n           
+    \"velocidad\": 9\r\n          },\r\n          {\r\n            \"id\": \"mago\",\r\n           
+    \"vida\": 80,\r\n            \"ataque\": 21,\r\n            \"defensa\": 3,\r\n           
+    \"velocidad\": 7\r\n          }\r\n        ]\r\n      }\r\n    }\r\n  }\r\n]"
+  _environments: "[\r\n  {\r\n    \"projectId\": \"88a3d607-604f-4749-8049-ae1620d2ab30\",\r\n   
+    \"name\": \"production\",\r\n    \"id\": \"6dbaed64-c9fb-4a35-a1c8-89a092476c32\",\r\n   
+    \"isDefault\": true,\r\n    \"createdAt\": \"2026-09-01T02:48:51Z\",\r\n    \"updatedAt\":
+    \"2026-09-01T02:48:51Z\"\r\n  }\r\n]"
