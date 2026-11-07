@@ -28,6 +28,8 @@ namespace Cloud2026.Core
         [Header("Configuración de Arranque")]
         [Tooltip("Si es true, no destruye este GameObject al cargar nuevas escenas.")]
         [SerializeField] private bool persistAcrossScenes = true;
+       // [SerializeField] private UGSEconomiaService economiaService;
+        [SerializeField] private UGSRemoteConfigService remoteConfigService;
 
         [Tooltip("Si es true, intenta realizar login anónimo automático tras inicializar.")]
         [SerializeField] private bool autoLoginAnonymous = false;
@@ -71,6 +73,17 @@ namespace Cloud2026.Core
                 {
                     await authService.SignInAnonymouslyAsync();
                 }
+
+                if (remoteConfigService != null && authService.IsSignedIn)
+                {
+                    await remoteConfigService.InicializarYDescargar();
+                }
+
+               /* if (economiaService != null)
+                {
+                    await economiaService.CargarEconomia();
+                }
+            */
             }
         }
 
@@ -80,6 +93,8 @@ namespace Cloud2026.Core
             cloudCodeService = EnsureComponent(cloudCodeService);
             turnMatchService = EnsureComponent(turnMatchService);
             cloudSaveService = EnsureComponent(cloudSaveService);
+            remoteConfigService = EnsureComponent(remoteConfigService);
+           // economiaService = EnsureComponent(economiaService);
         }
 
         /// <summary>
